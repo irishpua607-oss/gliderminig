@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glider Mining</title>
+<meta name="description" content="Join the airdrop, deploy your glider, mine stars and climb the leaderboard.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060b1a;--panel:#0b1530;--panel2:#0e1c3d;--line:#182a55;--text:#e8eefc;--mute:#8fa3cc;--blue:#1f6bff;--cyan:#38b6ff;--green:#3ddc97;--bad:#ff8c8c}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Sora",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{position:sticky;top:0;height:100vh;padding:22px 16px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:22px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:.02em;padding:0 8px}
+.logo small{display:block;font-size:11px;letter-spacing:.5em;color:var(--cyan);font-weight:600}
+.nav{display:grid;gap:6px}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--mute);text-decoration:none;font-weight:600}
+.nav a:hover{background:var(--panel2);color:var(--text)}
+.nav a.on{background:var(--blue);color:#fff}
+.promo{margin-top:auto;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;font-weight:800;line-height:1.3;background:linear-gradient(#0e1c3d,#08122b)}
+.main{padding:20px 28px 48px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.pill{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 16px;font-size:14px}
+.pill small{display:block;color:var(--mute);font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:#51608a;display:inline-block}
+.dot.on{background:var(--green)}
+.hero{position:relative;overflow:hidden;border-radius:22px;border:1px solid var(--line);min-height:380px;padding:40px;display:grid;grid-template-columns:1fr minmax(260px,320px);gap:24px;align-items:start}
+.hero svg.art{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hero>*:not(svg){position:relative;z-index:1}
+h1{margin:0;font-size:clamp(34px,6vw,62px);line-height:1;font-weight:800;letter-spacing:-.02em}
+h1 span{color:var(--cyan)}
+h1 em{display:block;color:var(--blue);font-style:italic;transform:skew(-8deg);font-size:1.15em;margin-top:6px}
+.tag{font-weight:600;margin:18px 0 6px;font-size:18px}
+.lede{color:#c6d3f0;max-width:34ch;margin:0 0 22px;font-size:15px}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--blue);color:#fff;border:0;border-radius:12px;padding:13px 22px;font-weight:600;cursor:pointer}
+.btn:hover{background:#2f7bff}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn.block{width:100%;justify-content:center}
+.card{background:rgba(8,16,38,.82);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:18px;padding:20px}
+.bal{display:flex;align-items:baseline;gap:8px;font-size:38px;font-weight:800;margin:6px 0 0;font-variant-numeric:tabular-nums}
+.bal small{font-size:14px;color:var(--cyan);font-weight:600}
+.note{color:var(--mute);font-size:13px;margin:10px 0 0}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-top:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;min-width:0}
+.panel h2{margin:0 0 14px;font-size:18px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.badge{font-size:12px;font-weight:600;border-radius:99px;padding:4px 12px;background:#12311f;color:var(--green)}
+.badge.warn{background:#3a2c0d;color:#ffcf6b}
+.mine{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:center}
+.ringbox{position:relative;width:170px;height:170px}
+.ringbox svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ringbox circle{fill:none;stroke-width:12}
+.ringbox .bg{stroke:#14234a}
+.ringbox .fg{stroke:var(--blue);stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1s linear}
+.ringbox .ico{position:absolute;inset:0;display:grid;place-items:center;color:var(--cyan)}
+.power{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums}
+.power small{font-size:14px;color:var(--mute);font-weight:600}
+.lbl{color:var(--mute);font-size:13px}
+.picks{display:grid;gap:10px;margin:14px 0}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.opt span{display:block;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:13px;background:var(--panel2)}
+.opt b{display:block;font-size:14px}
+.opt input:checked+span{border-color:var(--cyan);background:#10285a}
+.opt input:focus-visible+span{outline:3px solid var(--cyan);outline-offset:2px}
+select,input[type=text]{width:100%;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.boost{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.boost button{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:14px 10px;cursor:pointer;font-size:13px;font-weight:600}
+.boost button:hover{border-color:var(--cyan)}
+.right{display:grid;gap:18px;align-content:start}
+.join{display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;width:100%;text-align:left;color:var(--text)}
+.join b{display:block}
+.join small{color:var(--mute)}
+.wide{margin-top:18px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-size:13px;font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.r{width:44px;color:var(--mute)}
+tr.top td.r{color:var(--cyan);font-weight:800}
+tr.me td{color:var(--cyan)}
+.empty{color:var(--mute);padding:10px 0;margin:0}
+.gbar{display:grid;grid-template-columns:90px 1fr auto;gap:12px;align-items:center;margin:10px 0;font-size:14px}
+.gbar i{display:block;height:12px;border-radius:99px;background:var(--panel2);overflow:hidden}
+.gbar i u{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:99px}
+.link{display:flex;gap:10px;flex-wrap:wrap}
+.link code{flex:1;min-width:200px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;word-break:break-all;color:var(--cyan);font-size:13px}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);width:min(420px,92vw);padding:24px}
+dialog::backdrop{background:rgba(2,6,18,.75)}
+dialog form{display:grid;gap:14px}
+dialog label{display:grid;gap:6px;font-weight:600;font-size:14px}
+.msg{min-height:1.3em;margin:0;font-size:14px}.msg.err{color:var(--bad)}
+.safe{font-size:13px;color:var(--mute);border-left:3px solid var(--cyan);padding-left:10px}
+body[data-state=guest] :is(.v-joined,.v-active){display:none!important}
+body[data-state=joined] :is(.v-guest,.v-active){display:none!important}
+body[data-state=active] :is(.v-guest,.v-joined){display:none!important}
+@media (max-width:980px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;align-items:center;overflow-x:auto;padding:12px;border-right:0;border-bottom:1px solid var(--line)}
+  .logo small,.promo{display:none}
+  .nav{display:flex}.nav a{white-space:nowrap;padding:10px 14px}
+  .main{padding:16px 14px 40px}
+  .hero{grid-template-columns:1fr;padding:24px}
+  .grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){.mine{grid-template-columns:1fr;justify-items:center;text-align:center}.boost{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.ringbox .fg{transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body data-state="guest">
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M3 22 L36 5 L24 34 L19 23 Z" fill="#1f6bff"/><path d="M19 23 L36 5 L14 18 Z" fill="#38b6ff"/></svg>
+      <div><span id="brand">GLIDER</span><small>MINING</small></div>
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#home" class="on">Home</a>
+      <a href="#mining">Mining</a>
+      <a href="#guilds">Guild war</a>
+      <a href="#leaderboard">Leaderboard</a>
+      <a href="#referrals">Referrals</a>
+    </nav>
+    <div class="promo">GLIDE HIGHER<br>EARN BIGGER</div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <div class="pill"><div><small>Gliders deployed</small><b id="g-count">0</b></div></div>
+      <div class="pill"><span class="dot" id="wdot"></span><div><b id="wtxt">Not connected</b><small id="wsub">Join to connect</small></div></div>
+    </header>
+
+    <section class="hero" id="home">
+      <svg class="art" viewBox="0 0 900 380" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a2a73"/><stop offset=".6" stop-color="#1d63c9"/><stop offset="1" stop-color="#0b1a3c"/></linearGradient><filter id="bl"><feGaussianBlur stdDeviation="14"/></filter></defs>
+        <rect width="900" height="380" fill="url(#sk)"/>
+        <g filter="url(#bl)" fill="#cfe4ff" opacity=".55"><ellipse cx="540" cy="250" rx="140" ry="34"/><ellipse cx="760" cy="300" rx="170" ry="40"/><ellipse cx="380" cy="320" rx="150" ry="30"/></g>
+        <g transform="translate(560 90) rotate(-14)"><path d="M0 40 L170 0 L120 70 Z" fill="#1f6bff"/><path d="M0 40 L170 0 L70 40 Z" fill="#7cc7ff"/><circle cx="92" cy="86" r="16" fill="#e8eefc"/><circle cx="87" cy="84" r="4" fill="#38b6ff"/><circle cx="98" cy="84" r="4" fill="#38b6ff"/><path d="M92 70 L92 48" stroke="#e8eefc" stroke-width="3"/></g>
+      </svg>
+      <div>
+        <h1><span id="hbrand">GLIDER</span> MINING<em>START</em></h1>
+        <p class="tag">Mine. Earn. Fly further.</p>
+        <p class="lede">Join the airdrop, deploy your glider and mine stars with your guild. Climb the leaderboard by inviting friends.</p>
+        <button class="btn" id="hero-btn" type="button"><span class="v-guest">Join the airdrop</span><span class="v-joined">Pick your glider</span><span class="v-active">View mining</span></button>
+      </div>
+      <div class="card">
+        <div class="lbl">Your stars</div>
+        <div class="bal"><span id="bal">0.00</span><small>stars</small></div>
+        <div class="v-guest"><button class="btn block" id="connect" type="button" style="margin-top:14px">Join with wallet</button><p class="note">Add your X username and wallet address to start mining.</p></div>
+        <div class="v-joined v-active"><p class="note" id="status-note"></p></div>
+        <p class="note">Stars are in-game only. They have no token value.</p>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="panel" id="mining">
+        <h2>Mining <span class="badge v-active">Active</span></h2>
+        <div class="v-guest">
+          <p class="empty">Join the airdrop first. Then deploy a glider here to start mining.</p>
+          <button class="btn" type="button" data-join>Join the airdrop</button>
+        </div>
+        <div class="v-joined">
+          <p class="empty" style="padding-top:0">Pick a class and a guild. You can only deploy once.</p>
+          <div class="picks">
+            <div class="opts" role="radiogroup" aria-label="Glider class">
+              <label class="opt"><input type="radio" name="cls" value="miner" checked><span><b>Miner</b>1.0 stars/min</span></label>
+              <label class="opt"><input type="radio" name="cls" value="scout"><span><b>Scout</b>1.4 stars/min</span></label>
+              <label class="opt"><input type="radio" name="cls" value="hauler"><span><b>Hauler</b>0.8 stars/min</span></label>
+            </div>
+            <label class="lbl">Guild
+              <select id="gld"><option value="sunrise">Sunrise</option><option value="tide">Tide</option><option value="ember">Ember</option><option value="moss">Moss</option></select>
+            </label>
+          </div>
+          <button class="btn" id="dep" type="button">Start mining</button>
+          <p class="msg" id="dep-msg" role="status"></p>
+        </div>
+        <div class="v-active mine">
+          <div class="ringbox">
+            <svg viewBox="0 0 160 160" aria-hidden="true"><circle class="bg" cx="80" cy="80" r="70"/><circle class="fg" id="ring" cx="80" cy="80" r="70"/></svg>
+            <div class="ico"><svg width="46" height="46" viewBox="0 0 40 40" aria-hidden="true"><path d="M3 22 L36 5 L24 34 L19 23 Z" fill="currentColor"/></svg></div>
+          </div>
+          <div>
+            <div class="lbl">Mining power</div>
+            <div class="power"><span id="pw">0.0</span> <small>stars/min</small></div>
+            <div class="lbl" id="pw-sub"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="right">
+        <section class="panel">
+          <h2>Your stats</h2>
+          <div class="stats">
+            <div class="stat"><span class="lbl">Total mined</span><b id="tot">0.00</b></div>
+            <div class="stat"><span class="lbl">Per hour</span><b id="ph">0.0</b></div>
+            <div class="stat"><span class="lbl">Class and guild</span><b id="cg" style="font-size:16px">None yet</b></div>
+            <div class="stat"><span class="lbl">Referrals</span><b id="refn">0</b></div>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>Boost your climb</h2>
+          <div class="boost">
+            <button type="button" data-go="#referrals">Invite friends</button>
+            <button type="button" data-go="#guilds">Guild war</button>
+            <button type="button" data-go="#leaderboard">Leaderboard</button>
+          </div>
+        </section>
+        <section class="panel">
+          <button class="join" type="button" data-join aria-label="Join the airdrop"><span><b>Join the airdrop</b><small>Free tokens sent to your wallet after review.</small></span><span aria-hidden="true">&rarr;</span></button>
+        </section>
+      </div>
+    </div>
+
+    <section class="panel wide" id="guilds"><h2>Guild war</h2><div id="gbars"><p class="empty">No gliders deployed yet.</p></div></section>
+    <section class="panel wide" id="leaderboard"><h2>Leaderboard</h2><p class="lbl" style="margin-top:-6px">Ranked by approved friends who joined with your link.</p><div id="lb"><p class="empty">Loading...</p></div></section>
+    <section class="panel wide" id="referrals">
+      <h2>Referrals</h2>
+      <div class="v-guest"><p class="empty">Join the airdrop to get your invite link.</p></div>
+      <div class="v-joined v-active"><div class="link"><code id="reflink"></code><button class="btn ghost" id="copy" type="button">Copy link</button></div><p class="note">Friends count after their entry is approved.</p></div>
+    </section>
+
+    <p class="note" style="margin-top:24px">Tokens have no promised value. Airdrop amounts depend on total participation. Check your local rules before joining. We never ask for a seed phrase, private key or signature.</p>
+  </div>
+</div>
+
+<dialog id="join">
+  <form id="f" method="dialog" novalidate>
+    <b style="font-size:20px">Join the airdrop</b>
+    <label>Your X username<input type="text" id="handle" placeholder="@yourname" autocomplete="off"></label>
+    <label>Your wallet address (Robinhood Chain)<input type="text" id="wallet" placeholder="0x..." autocomplete="off" spellcheck="false"></label>
+    <button class="btn ghost" id="usew" type="button">Fill from my wallet app</button>
+    <p class="safe">Address only. We never ask for a seed phrase, private key or signature. Entries are reviewed before tokens are sent.</p>
+    <p class="msg" id="msg" role="status"></p>
+    <div style="display:flex;gap:10px"><button class="btn" id="go" type="submit">Join</button><button class="btn ghost" id="x" type="button">Cancel</button></div>
+  </form>
+</dialog>
+
+<script>
+const CONFIG = {
+  API_BASE: "https://vljdsiwsqawbshzgrnbg.supabase.co/functions/v1/api",
+  BRAND: "GLIDER"
+};
+const RATE = { miner: 1, scout: 1.4, hauler: 0.8 }, CAP_MIN = 14 * 24 * 60;
+const CLS = { miner: "Miner", scout: "Scout", hauler: "Hauler" };
+const GLD = { sunrise: "Sunrise", tide: "Tide", ember: "Ember", moss: "Moss" };
+const $ = id => document.getElementById(id);
+const short = a => a ? a.slice(0, 6) + "..." + a.slice(-4) : "";
+const fmt = (n, d = 2) => Number(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+const refParam = (new URLSearchParams(location.search).get("ref") || "").replace(/[^A-Za-z0-9_]/g, "").slice(0, 15);
+let S = { session: null, me: null, guilds: [], board: [] };
+
+try { S.session = JSON.parse(localStorage.getItem("glider.session")); } catch (_) {}
+const saveSession = v => { try { v ? localStorage.setItem("glider.session", JSON.stringify(v)) : localStorage.removeItem("glider.session"); } catch (_) {} };
+
+async function call(path, body) {
+  if (!CONFIG.API_BASE) throw new Error("Backend not connected yet.");
+  const r = await fetch(CONFIG.API_BASE + path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : undefined);
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || d.ok === false) { const e = new Error(d.error || "Something went wrong. Try again."); e.status = r.status; throw e; }
+  return d;
+}
+
+document.querySelectorAll("#brand,#hbrand").forEach(e => e.textContent = CONFIG.BRAND);
+
+function render() {
+  const m = S.me, d = m && m.deploy;
+  document.body.dataset.state = !S.session || !m ? "guest" : d ? "active" : "joined";
+  $("wdot").className = "dot" + (m ? " on" : "");
+  $("wtxt").textContent = m ? short(m.wallet) : "Not connected";
+  $("wsub").textContent = m ? "@" + S.session.handle : "Join to connect";
+  $("status-note").textContent = m ? (m.status === "pending" ? "Entry received. Tokens are sent after review." : "Entry approved. Tokens go to your wallet.") : "";
+  $("refn").textContent = m ? m.referrals : 0;
+  $("reflink").textContent = S.session ? location.origin + location.pathname + "?ref=" + S.session.handle : "";
+  if (d) {
+    $("cg").textContent = CLS[d.cls] + " / " + GLD[d.guild];
+    $("pw").textContent = fmt(RATE[d.cls], 1);
+    $("ph").textContent = fmt(RATE[d.cls] * 60, 1);
+    $("pw-sub").textContent = "Mining for the " + GLD[d.guild] + " guild";
+  } else { $("cg").textContent = "None yet"; $("ph").textContent = "0.0"; $("bal").textContent = "0.00"; $("tot").textContent = "0.00"; }
+
+  $("g-count").textContent = S.guilds.reduce((a, g) => a + (g.members || 0), 0);
+  const gb = $("gbars"); gb.replaceChildren();
+  const max = Math.max(1, ...S.guilds.map(g => Number(g.stars) || 0));
+  if (!S.guilds.length) gb.innerHTML = '<p class="empty">No gliders deployed yet.</p>';
+  S.guilds.forEach(g => {
+    const row = document.createElement("div"); row.className = "gbar";
+    const n = document.createElement("span"); n.textContent = GLD[g.guild] || g.guild;
+    const bar = document.createElement("i"), fill = document.createElement("u"); fill.style.width = Math.max(3, (Number(g.stars) / max) * 100) + "%"; bar.appendChild(fill);
+    const v = document.createElement("span"); v.textContent = fmt(g.stars, 0) + " stars, " + g.members + " gliders";
+    row.append(n, bar, v); gb.appendChild(row);
+  });
+
+  const lb = $("lb");
+  if (!S.board.length) { lb.innerHTML = '<p class="empty">No one is on the board yet. Invite friends to be first.</p>'; }
+  else {
+    const t = document.createElement("table");
+    t.innerHTML = '<thead><tr><th>#</th><th>Player</th><th class="n">Friends</th></tr></thead>';
+    const b = document.createElement("tbody");
+    S.board.slice(0, 20).forEach((x, i) => {
+      const tr = document.createElement("tr"); if (i < 3) tr.className = "top";
+      if (S.session && x.handle === S.session.handle) tr.classList.add("me");
+      const a = document.createElement("td"); a.className = "r"; a.textContent = i + 1;
+      const h = document.createElement("td"); h.textContent = "@" + String(x.handle).slice(0, 15);
+      const c = document.createElement("td"); c.className = "n"; c.textContent = Number(x.referrals) || 0;
+      tr.append(a, h, c); b.appendChild(tr);
+    });
+    t.appendChild(b); lb.replaceChildren(t);
+  }
+  tick();
+}
+
+function tick() {
+  const d = S.me && S.me.deploy; if (!d) return;
+  const el = Math.min((Date.now() - new Date(d.deployed_at).getTime()) / 60000, CAP_MIN);
+  const stars = Math.max(0, el) * RATE[d.cls];
+  $("bal").textContent = fmt(stars); $("tot").textContent = fmt(stars);
+  $("ring").style.strokeDashoffset = 440 * (1 - ((Date.now() / 1000) % 60) / 60);
+}
+
+async function refresh() {
+  try { S.guilds = await call("/guilds"); } catch (_) {}
+  try { S.board = await call("/leaderboard"); } catch (_) {}
+  if (S.session) {
+    try { S.me = await call("/me", { handle: S.session.handle, token: S.session.token }); }
+    catch (e) { if (e.status === 403) { S.session = null; S.me = null; saveSession(null); } }
+  }
+  render();
+}
+
+// Join
+const dlg = $("join"), msg = $("msg");
+const say = (t, c) => { msg.textContent = t; msg.className = "msg " + (c || ""); };
+const openJoin = () => { say(""); dlg.showModal(); };
+document.querySelectorAll("[data-join]").forEach(b => b.addEventListener("click", openJoin));
+$("connect").addEventListener("click", async () => { openJoin(); await fillWallet(); });
+$("x").addEventListener("click", () => dlg.close());
+async function fillWallet() {
+  if (!window.ethereum) return say("No wallet app found. Paste your address instead.", "err");
+  try { const a = await window.ethereum.request({ method: "eth_requestAccounts" }); if (a && a[0]) $("wallet").value = a[0]; say(""); }
+  catch (_) { say("Could not read your wallet. Paste your address instead.", "err"); }
+}
+$("usew").addEventListener("click", fillWallet);
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const handle = $("handle").value.trim().replace(/^@/, "").toLowerCase(), wallet = $("wallet").value.trim();
+  if (!/^[a-z0-9_]{1,15}$/.test(handle)) return say("Enter your X username (letters, numbers, underscore, up to 15).", "err");
+  if (!/^0x[a-fA-F0-9]{40}$/.test(wallet)) return say("Enter a valid wallet address: 0x followed by 40 characters.", "err");
+  $("go").disabled = true; say("Sending your entry...");
+  try {
+    const d = await call("/claim", { handle, wallet, ref: refParam || null });
+    S.session = { handle, token: d.token }; saveSession(S.session);
+    dlg.close(); await refresh(); $("mining").scrollIntoView({ behavior: "smooth" });
+  } catch (err) { say(err.message, "err"); }
+  $("go").disabled = false;
+});
+
+// Deploy
+$("dep").addEventListener("click", async () => {
+  const cls = document.querySelector('input[name="cls"]:checked').value, guild = $("gld").value, m = $("dep-msg");
+  $("dep").disabled = true; m.textContent = ""; m.className = "msg";
+  try { await call("/deploy", { handle: S.session.handle, token: S.session.token, cls, guild }); await refresh(); }
+  catch (err) { m.textContent = err.message; m.className = "msg err"; }
+  $("dep").disabled = false;
+});
+
+$("hero-btn").addEventListener("click", () => { document.body.dataset.state === "guest" ? openJoin() : $("mining").scrollIntoView({ behavior: "smooth" }); });
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => document.querySelector(b.dataset.go).scrollIntoView({ behavior: "smooth" })));
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("reflink").textContent); $("copy").textContent = "Copied"; } catch (_) { $("copy").textContent = "Select and copy"; }
+  setTimeout(() => $("copy").textContent = "Copy link", 2000);
+});
+const links = [...document.querySelectorAll(".nav a")];
+links.forEach(a => a.addEventListener("click", () => { links.forEach(x => x.classList.remove("on")); a.classList.add("on"); }));
+
+render(); refresh();
+setInterval(tick, 1000);
+setInterval(refresh, 60000);
+</script>
+</body>
+</html>
