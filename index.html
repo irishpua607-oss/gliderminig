@@ -51,12 +51,12 @@ h1 em{display:block;color:var(--blue);font-style:italic;transform:skew(-8deg);fo
 .panel h2{margin:0 0 14px;font-size:18px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .badge{font-size:12px;font-weight:600;border-radius:99px;padding:4px 12px;background:#12311f;color:var(--green)}
 .badge.warn{background:#3a2c0d;color:#ffcf6b}
-.mine{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:center}
+.mine{padding:14px;border-radius:16px;background:radial-gradient(circle at 18% 50%,rgba(31,107,255,.22),transparent 65%);display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:center}
 .ringbox{position:relative;width:170px;height:170px}
 .ringbox svg{width:100%;height:100%;transform:rotate(-90deg)}
 .ringbox circle{fill:none;stroke-width:12}
 .ringbox .bg{stroke:#14234a}
-.ringbox .fg{stroke:var(--blue);stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1s linear}
+.ringbox .fg{filter:drop-shadow(0 0 7px var(--cyan));stroke:var(--blue);stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1s linear}
 .ringbox .ico{position:absolute;inset:0;display:grid;place-items:center;color:var(--cyan)}
 .power{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums}
 .power small{font-size:14px;color:var(--mute);font-weight:600}
@@ -86,7 +86,7 @@ th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line)}
 th{color:var(--mute);font-size:13px;font-weight:600}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 td.r{width:44px;color:var(--mute)}
-tr.top td.r{color:var(--cyan);font-weight:800}
+tr.podium td.r{color:var(--cyan);font-weight:800}
 tr.me td{color:var(--cyan)}
 .empty{color:var(--mute);padding:10px 0;margin:0}
 .gbar{display:grid;grid-template-columns:90px 1fr auto;gap:12px;align-items:center;margin:10px 0;font-size:14px}
@@ -100,9 +100,17 @@ dialog form{display:grid;gap:14px}
 dialog label{display:grid;gap:6px;font-weight:600;font-size:14px}
 .msg{min-height:1.3em;margin:0;font-size:14px}.msg.err{color:var(--bad)}
 .safe{font-size:13px;color:var(--mute);border-left:3px solid var(--cyan);padding-left:10px}
-body[data-state=guest] :is(.v-joined,.v-active){display:none!important}
+body[data-state=guest] :is(.v-joined,.v-active,.v-member){display:none!important}
 body[data-state=joined] :is(.v-guest,.v-active){display:none!important}
 body[data-state=active] :is(.v-guest,.v-joined){display:none!important}
+.sky{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(#08122b,#0a2a73 120%)}
+.sky canvas{display:block;width:100%;height:340px}
+.feed{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px;max-height:260px;overflow:auto}
+.feed li{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px}
+.feed a{color:var(--cyan);font-weight:600;text-decoration:none}.feed a:hover{text-decoration:underline}
+.feed time{color:var(--mute);font-size:12px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--blue);color:#fff;border-radius:12px;padding:12px 18px;font-weight:600;font-size:14px;transition:.3s;z-index:20;max-width:92vw}
+.toast.on{opacity:1;transform:translate(-50%,0)}
 @media (max-width:980px){
   .app{grid-template-columns:1fr}
   .side{position:static;height:auto;flex-direction:row;align-items:center;overflow-x:auto;padding:12px;border-right:0;border-bottom:1px solid var(--line)}
@@ -113,7 +121,9 @@ body[data-state=active] :is(.v-guest,.v-joined){display:none!important}
   .grid{grid-template-columns:1fr}
 }
 @media (max-width:560px){.mine{grid-template-columns:1fr;justify-items:center;text-align:center}.boost{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){.ringbox .fg{transition:none}html{scroll-behavior:auto}}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-4deg)}}
+.ringbox .ico svg{animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 0 8px var(--cyan))}
+@media (prefers-reduced-motion:reduce){.ringbox .ico svg{animation:none}.ringbox .fg{transition:none}html{scroll-behavior:auto}}
 </style>
 </head>
 <body data-state="guest">
@@ -156,7 +166,7 @@ body[data-state=active] :is(.v-guest,.v-joined){display:none!important}
         <div class="lbl">Your stars</div>
         <div class="bal"><span id="bal">0.00</span><small>stars</small></div>
         <div class="v-guest"><button class="btn block" id="connect" type="button" style="margin-top:14px">Join with wallet</button><p class="note">Add your X username and wallet address to start mining.</p></div>
-        <div class="v-joined v-active"><p class="note" id="status-note"></p></div>
+        <div class="v-member"><p class="note" id="status-note"></p></div>
         <p class="note">Stars are in-game only. They have no token value.</p>
       </div>
     </section>
@@ -220,17 +230,26 @@ body[data-state=active] :is(.v-guest,.v-joined){display:none!important}
       </div>
     </div>
 
+    <section class="panel wide" id="live">
+      <h2>Live mining <span class="badge" id="live-n">0 gliders</span></h2>
+      <div class="sky"><canvas id="sky" aria-label="Gliders collecting stars and asteroids, each labelled with the player's X name" role="img"></canvas></div>
+      <p class="note" id="live-note">Gliders collect stars and asteroids. The flight is a visual; your real stars are counted by time.</p>
+      <ul class="feed" id="feed" aria-label="Recent deploys"></ul>
+    </section>
+
     <section class="panel wide" id="guilds"><h2>Guild war</h2><div id="gbars"><p class="empty">No gliders deployed yet.</p></div></section>
     <section class="panel wide" id="leaderboard"><h2>Leaderboard</h2><p class="lbl" style="margin-top:-6px">Ranked by approved friends who joined with your link.</p><div id="lb"><p class="empty">Loading...</p></div></section>
     <section class="panel wide" id="referrals">
       <h2>Referrals</h2>
       <div class="v-guest"><p class="empty">Join the airdrop to get your invite link.</p></div>
-      <div class="v-joined v-active"><div class="link"><code id="reflink"></code><button class="btn ghost" id="copy" type="button">Copy link</button></div><p class="note">Friends count after their entry is approved.</p></div>
+      <div class="v-member"><div class="link"><code id="reflink"></code><button class="btn ghost" id="copy" type="button">Copy link</button></div><p class="note">Friends count after their entry is approved.</p></div>
     </section>
 
     <p class="note" style="margin-top:24px">Tokens have no promised value. Airdrop amounts depend on total participation. Check your local rules before joining. We never ask for a seed phrase, private key or signature.</p>
   </div>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <dialog id="join">
   <form id="f" method="dialog" novalidate>
@@ -306,7 +325,7 @@ function render() {
     t.innerHTML = '<thead><tr><th>#</th><th>Player</th><th class="n">Friends</th></tr></thead>';
     const b = document.createElement("tbody");
     S.board.slice(0, 20).forEach((x, i) => {
-      const tr = document.createElement("tr"); if (i < 3) tr.className = "top";
+      const tr = document.createElement("tr"); if (i < 3) tr.className = "podium";
       if (S.session && x.handle === S.session.handle) tr.classList.add("me");
       const a = document.createElement("td"); a.className = "r"; a.textContent = i + 1;
       const h = document.createElement("td"); h.textContent = "@" + String(x.handle).slice(0, 15);
@@ -366,11 +385,22 @@ $("f").addEventListener("submit", async e => {
 
 // Deploy
 $("dep").addEventListener("click", async () => {
-  const cls = document.querySelector('input[name="cls"]:checked').value, guild = $("gld").value, m = $("dep-msg");
-  $("dep").disabled = true; m.textContent = ""; m.className = "msg";
-  try { await call("/deploy", { handle: S.session.handle, token: S.session.token, cls, guild }); await refresh(); }
-  catch (err) { m.textContent = err.message; m.className = "msg err"; }
-  $("dep").disabled = false;
+  const m = $("dep-msg");
+  if (!S.session) { openJoin(); return; }
+  const cls = document.querySelector('input[name="cls"]:checked').value, guild = $("gld").value;
+  $("dep").disabled = true; $("dep").textContent = "Deploying..."; m.textContent = ""; m.className = "msg";
+  try {
+    const d = await call("/deploy", { handle: S.session.handle, token: S.session.token, cls, guild });
+    const dep = (d && d.deploy) || { cls, guild, deployed_at: (d && d.deployed_at) || new Date().toISOString() };
+    S.me = Object.assign({}, S.me, { deploy: dep });
+    addToFeed({ handle: S.session.handle, cls: dep.cls, guild: dep.guild, deployed_at: dep.deployed_at }, true);
+    toast("@" + S.session.handle + " deployed a " + CLS[dep.cls] + " for " + GLD[dep.guild]);
+    render(); refresh(); fetchFeed();
+  } catch (err) {
+    if (err.status === 403) { S.session = null; S.me = null; saveSession(null); render(); openJoin(); say("Session expired. Join again.", "err"); }
+    else { m.textContent = err.message; m.className = "msg err"; if (/already|deployed/i.test(err.message)) refresh(); }
+  }
+  $("dep").disabled = false; $("dep").textContent = "Start mining";
 });
 
 $("hero-btn").addEventListener("click", () => { document.body.dataset.state === "guest" ? openJoin() : $("mining").scrollIntoView({ behavior: "smooth" }); });
@@ -381,6 +411,125 @@ $("copy").addEventListener("click", async () => {
 });
 const links = [...document.querySelectorAll(".nav a")];
 links.forEach(a => a.addEventListener("click", () => { links.forEach(x => x.classList.remove("on")); a.classList.add("on"); }));
+
+// Live mining: feed + sky
+const GCOL = { sunrise: "#ffb347", tide: "#38b6ff", ember: "#ff6b4a", moss: "#6fcf7f" };
+const cleanH = h => String(h || "").replace(/[^A-Za-z0-9_]/g, "").slice(0, 15);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let feed = [], feedOk = true, fliers = new Map(), objs = [], pops = [], W = 0, H = 300, lastT = 0, spawnT = 0;
+const cv = $("sky"), cx = cv.getContext("2d");
+function toast(t) { const e = $("toast"); e.textContent = t; e.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("on"), 3500); }
+const ago = iso => { const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000); return s < 60 ? "just now" : s < 3600 ? Math.floor(s / 60) + "m ago" : s < 86400 ? Math.floor(s / 3600) + "h ago" : Math.floor(s / 86400) + "d ago"; };
+function addToFeed(x, fresh) {
+  const h = cleanH(x.handle); if (!h || !RATE[x.cls]) return;
+  feed = feed.filter(f => f.handle !== h); feed.unshift({ handle: h, cls: x.cls, guild: x.guild, deployed_at: x.deployed_at });
+  syncFliers(fresh ? h : null); renderFeed();
+}
+function renderFeed() {
+  $("live-n").textContent = feed.length + (feed.length === 1 ? " glider" : " gliders");
+  const ul = $("feed"); ul.replaceChildren();
+  if (!feed.length) { const li = document.createElement("li"); li.textContent = "No gliders in the air yet. Be the first to deploy."; ul.appendChild(li); }
+  feed.slice(0, 15).forEach(f => {
+    const li = document.createElement("li"), a = document.createElement("a"), t = document.createElement("time"), w = document.createElement("span");
+    a.href = "https://x.com/" + f.handle; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = "@" + f.handle;
+    w.append(a, " deployed a " + (CLS[f.cls] || f.cls) + " for " + (GLD[f.guild] || f.guild));
+    t.dateTime = f.deployed_at; t.textContent = ago(f.deployed_at); li.append(w, t); ul.appendChild(li);
+  });
+  $("live-note").textContent = feedOk ? "Gliders collect stars and asteroids. The flight is a visual; your real stars are counted by time." : "Live feed is not available yet, so only your own glider is shown.";
+  if (reduce) drawSky(0);
+}
+function syncFliers(fresh) {
+  const keep = new Set(feed.slice(0, 24).map(f => f.handle));
+  fliers.forEach((_, k) => { if (!keep.has(k)) fliers.delete(k); });
+  feed.slice(0, 24).forEach(f => {
+    if (fliers.has(f.handle)) return;
+    let hsh = 0; for (const c of f.handle) hsh = (hsh * 31 + c.charCodeAt(0)) >>> 0;
+    fliers.set(f.handle, { h: f.handle, col: GCOL[f.guild] || "#38b6ff", v: 38 * RATE[f.cls], x: fresh === f.handle ? -40 : Math.random() * Math.max(W, 300), lane: 0.12 + (hsh % 100) / 100 * 0.76, ph: hsh % 6, boost: fresh === f.handle ? 1 : 0 });
+  });
+}
+async function fetchFeed() {
+  try {
+    const d = await call("/feed"), a = Array.isArray(d) ? d : d.feed;
+    feed = (a || []).map(x => ({ handle: cleanH(x.handle), cls: x.cls, guild: x.guild, deployed_at: x.deployed_at })).filter(x => x.handle && RATE[x.cls]);
+    feedOk = true;
+  } catch (_) { feedOk = false; feed = []; }
+  const d = S.me && S.me.deploy;
+  if (d && S.session && !feed.some(f => f.handle === S.session.handle)) feed.unshift({ handle: S.session.handle, cls: d.cls, guild: d.guild, deployed_at: d.deployed_at });
+  syncFliers(); renderFeed();
+}
+function sizeSky() {
+  const r = cv.getBoundingClientRect(), k = devicePixelRatio || 1; W = r.width; H = r.height;
+  cv.width = Math.round(W * k); cv.height = Math.round(H * k); cx.setTransform(k, 0, 0, k, 0, 0);
+}
+function plane(x, y, c, s, a) {
+  cx.save(); cx.translate(x, y); cx.rotate(a || 0); cx.scale(s, s); cx.fillStyle = c; cx.shadowColor = c; cx.shadowBlur = 14;
+  cx.beginPath(); cx.moveTo(-14, 3); cx.lineTo(16, -8); cx.lineTo(6, 12); cx.lineTo(1, 4); cx.closePath(); cx.fill();
+  cx.fillStyle = "rgba(255,255,255,.55)"; cx.beginPath(); cx.moveTo(1, 4); cx.lineTo(16, -8); cx.lineTo(-6, 0); cx.closePath(); cx.fill(); cx.restore();
+}
+function star(x, y, r) {
+  cx.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * .45 : r; cx.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } cx.closePath(); cx.save(); cx.shadowColor = "#ffd75e"; cx.shadowBlur = 10; cx.fillStyle = "#ffd75e"; cx.fill(); cx.restore();
+}
+const bgStars = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.3 + .3, p: Math.random() * 6, s: .3 + Math.random() }));
+let parts = [];
+function burst(x, y, col, n) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, v = 30 + Math.random() * 90; parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: .5 + Math.random() * .5, col, r: 1 + Math.random() * 2 }); } }
+function drawSky(dt) {
+  if (!W) return;
+  const now = performance.now() / 1000;
+  const g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#050b22"); g.addColorStop(.6, "#0d2e7a"); g.addColorStop(1, "#1d63c9");
+  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  bgStars.forEach(t => { t.x -= t.s * dt * .012; if (t.x < 0) t.x += 1; cx.globalAlpha = .35 + .65 * Math.abs(Math.sin(now * t.s + t.p)); cx.fillStyle = "#fff"; cx.beginPath(); cx.arc(t.x * W, t.y * H * .8, t.r, 0, 6.283); cx.fill(); });
+  cx.globalAlpha = 1; cx.fillStyle = "rgba(207,228,255,.09)";
+  for (let i = 0; i < 4; i++) { const m = W + 300, x = (((i * W / 3.2 - (reduce ? 0 : now * (8 + i * 3))) % m) + m) % m - 150; cx.beginPath(); cx.ellipse(x, H - 16 - i * 7, 120 + i * 22, 15 + i * 3, 0, 0, 6.283); cx.fill(); }
+  if (!reduce) {
+    spawnT -= dt;
+    if (spawnT <= 0 && objs.length < 26) { spawnT = .4 + Math.random() * .5; const rock = Math.random() < .45; objs.push({ x: W + 20, y: 24 + Math.random() * (H - 60), v: 45 + Math.random() * 35, rock, r: rock ? 10 + Math.random() * 6 : 7, rot: Math.random() * 6 }); }
+  } else if (!objs.length) for (let i = 0; i < 10; i++) { const rock = i % 3 === 0; objs.push({ x: (i + .5) * W / 10, y: 30 + ((i * 53) % Math.max(60, H - 80)), v: 0, rock, r: rock ? 12 : 7, rot: i }); }
+  objs.forEach(o => {
+    o.x -= o.v * dt; o.rot += dt * .6;
+    if (o.rock) {
+      cx.save(); cx.translate(o.x, o.y); cx.rotate(o.rot); cx.fillStyle = "#6b7a99"; cx.strokeStyle = "#a9b8da"; cx.lineWidth = 1.2;
+      cx.beginPath(); for (let i = 0; i < 7; i++) { const a = i * 6.283 / 7, q = o.r * (i % 2 ? .8 : 1.05); cx.lineTo(Math.cos(a) * q, Math.sin(a) * q); } cx.closePath(); cx.fill(); cx.stroke();
+      cx.fillStyle = "rgba(20,30,60,.35)"; cx.beginPath(); cx.arc(o.r * .25, -o.r * .2, o.r * .25, 0, 6.283); cx.fill(); cx.restore();
+    } else star(o.x, o.y, o.r);
+  });
+  parts = parts.filter(p => (p.t += dt) < p.life);
+  parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; cx.globalAlpha = 1 - p.t / p.life; cx.fillStyle = p.col; cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, 6.283); cx.fill(); });
+  cx.globalAlpha = 1;
+  fliers.forEach(f => {
+    f.x += f.v * (f.boost ? 3 : 1) * dt; if (f.boost && f.x > 80) f.boost = 0; if (f.x > W + 90) { f.x = -90; f.tgt = null; }
+    const y = f.lane * H + Math.sin(now * 1.1 + f.ph) * 12, ang = dt ? Math.max(-.35, Math.min(.35, (y - (f.py ?? y)) / dt / 140)) : 0;
+    f.py = y; f.y = y;
+    if (!reduce) {
+      if (Math.random() < dt * 30) parts.push({ x: f.x - 14, y: y + 3, vx: -25, vy: (Math.random() - .5) * 10, t: 0, life: .7, col: f.col, r: 2.4 });
+      if (f.tgt && (!objs.includes(f.tgt) || f.tgt.x < f.x - 20)) f.tgt = null;
+      if (!f.tgt) { const o = objs.find(o => o.rock && !o.by && o.x > f.x + 30 && o.x - f.x < 170 && Math.abs(o.y - y) < 70); if (o) { o.by = f.h; f.tgt = o; f.work = 0; } }
+      if (f.tgt) {
+        const o = f.tgt; f.work += dt;
+        cx.save(); cx.strokeStyle = f.col; cx.shadowColor = f.col; cx.shadowBlur = 10; cx.lineWidth = 2; cx.globalAlpha = .7 + .3 * Math.sin(now * 40);
+        cx.beginPath(); cx.moveTo(f.x + 17, y - 9); cx.lineTo(o.x, o.y); cx.stroke(); cx.restore();
+        if (f.work > .7) { objs.splice(objs.indexOf(o), 1); burst(o.x, o.y, "#b9c6e6", 14); objs.push({ x: o.x, y: o.y, v: o.v, rock: false, r: 7, rot: 0 }); pops.push({ x: o.x, y: o.y, t: 0, txt: "ore", col: "#b9c6e6" }); f.tgt = null; }
+      }
+      for (let i = objs.length - 1; i >= 0; i--) {
+        const o = objs[i]; if (o.rock) continue;
+        const dx = f.x - o.x, dy = y - o.y, d = Math.hypot(dx, dy) || 1;
+        if (d < 90) { o.x += dx / d * 140 * dt; o.y += dy / d * 140 * dt; }
+        if (d < 18) { objs.splice(i, 1); burst(o.x, o.y, "#ffd75e", 10); pops.push({ x: o.x, y: o.y, t: 0, txt: "+1", col: "#ffd75e" }); }
+      }
+    }
+    plane(f.x, y, f.col, 1.1, ang);
+    const mine = S.session && f.h === S.session.handle, txt = "@" + f.h;
+    cx.font = "600 12px Sora, system-ui, sans-serif"; const w = cx.measureText(txt).width + 14;
+    cx.fillStyle = "rgba(6,11,26,.8)"; cx.strokeStyle = mine ? "#38b6ff" : "rgba(143,163,204,.4)"; cx.beginPath(); cx.roundRect(f.x - w / 2, y - 34, w, 20, 10); cx.fill(); cx.stroke();
+    cx.fillStyle = mine ? "#38b6ff" : "#e8eefc"; cx.textAlign = "center"; cx.fillText(txt, f.x, y - 20);
+  });
+  pops = pops.filter(p => (p.t += dt) < 1);
+  pops.forEach(p => { cx.globalAlpha = 1 - p.t; cx.fillStyle = p.col; cx.font = "800 12px Sora, system-ui, sans-serif"; cx.textAlign = "center"; cx.fillText(p.txt, p.x, p.y - p.t * 24); cx.globalAlpha = 1; });
+  objs = objs.filter(o => o.x > -30);
+}
+function loop(t) { const dt = Math.min(.05, (t - lastT) / 1000 || 0); lastT = t; drawSky(dt); requestAnimationFrame(loop); }
+sizeSky(); new ResizeObserver(() => { sizeSky(); if (reduce) drawSky(0); }).observe(cv);
+if (!reduce) requestAnimationFrame(loop);
+fetchFeed(); setInterval(fetchFeed, 15000);
 
 render(); refresh();
 setInterval(tick, 1000);
